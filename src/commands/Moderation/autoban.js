@@ -1,24 +1,36 @@
-const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
+import { SlashCommandBuilder, PermissionFlagsBits } from 'discord.js';
+import { successEmbed } from '../../utils/embeds.js';
 
-module.exports = {
+export default {
     data: new SlashCommandBuilder()
         .setName('autoban')
-        .setDescription('Enable autoban for a channel')
+        .setDescription('Enable AutoBan on a channel')
         .addChannelOption(option =>
-            option.setName('channel')
+            option
+                .setName('channel')
                 .setDescription('Channel to protect')
-                .setRequired(true))
-        .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
+                .setRequired(true)
+        )
+        .setDefaultMemberPermissions(PermissionFlagsBits.BanMembers),
 
-    async execute(interaction) {
+    category: 'moderation',
+
+    async execute(interaction, config, client) {
         const channel = interaction.options.getChannel('channel');
 
-        interaction.client.autobanChannels ??= new Set();
-        interaction.client.autobanChannels.add(channel.id);
+        if (!client.autobanChannels) {
+            client.autobanChannels = new Set();
+        }
+
+        client.autobanChannels.add(channel.id);
 
         await interaction.reply({
-            content: `AutoBan enabled for ${channel}.`,
-            ephemeral: true
+            embeds: [
+                successEmbed(
+                    '✅ AutoBan Enabled',
+                    `Anyone who sends a message in ${channel} will be banned.`
+                )
+            ]
         });
-    }
+    },
 };
